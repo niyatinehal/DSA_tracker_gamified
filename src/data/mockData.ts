@@ -2,7 +2,7 @@ import { User, Question } from '../types';
 
 export const mockUser: User = {
   id: '1',
-  name: 'Alex Chen',
+  name: 'Niyati Nehal',
   email: 'alex@example.com',
   avatar: {
     skinColor: '#f5d0a9',

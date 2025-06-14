@@ -56,6 +56,7 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
     if (isValid) {
       onComplete();
     }
+    onComplete();
   };
 
   return (
@@ -179,12 +180,13 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
             </button>
             <button
               onClick={handleComplete}
-              disabled={!isValid}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                isValid
-                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              // disabled={!isValid}
+              // className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              //   isValid
+              //     ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+              //     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              // }`}
+              className='px-6 py-2 rounded-lg font-medium transition-colors bg-emerald-500 hover:bg-emerald-600 text-white'
             >
               Plant Tree 🌱
             </button>
