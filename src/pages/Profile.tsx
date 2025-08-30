@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Edit3, Calendar, Trophy, Target, Zap } from 'lucide-react';
 import AvatarCustomizer from '../components/AvatarCustomizer';
 import { User } from '../types';
-import { apiService } from '../services/api';
 
 interface ProfileProps {
   user: User;
@@ -13,29 +12,14 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.name);
-  const [achievements, setAchievements] = useState([]);
 
-  // Load achievements from API
-  React.useEffect(() => {
-    const loadAchievements = async () => {
-      try {
-        const userAchievements = await apiService.getAchievements(Number(user.id));
-        setAchievements(userAchievements);
-      } catch (error) {
-        console.warn('Failed to load achievements:', error);
-      }
-    };
-
-    loadAchievements();
-  }, [user.id]);
-
-  const handleSaveName = async () => {
-    await onUpdateUser({ name: editedName });
+  const handleSaveName = () => {
+    onUpdateUser({ ...user, name: editedName });
     setIsEditing(false);
   };
 
-  const handleAvatarSave = async (newAvatar: User['avatar']) => {
-    await onUpdateUser({ avatar: newAvatar });
+  const handleAvatarSave = (newAvatar: User['avatar']) => {
+    onUpdateUser({ ...user, avatar: newAvatar });
     setShowAvatarCustomizer(false);
   };
 
@@ -193,54 +177,73 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Achievements</h2>
           
-          {achievements.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {achievements.map((achievement: any) => (
-                <div key={achievement.id} className={`p-4 rounded-lg border-2 ${
-                  achievement.unlocked 
-                    ? 'border-emerald-200 bg-emerald-50' 
-                    : 'border-gray-200 bg-gray-50'
-                }`}>
-                  <div className="text-2xl mb-2">{achievement.icon}</div>
-                  <div className="font-medium text-gray-800">{achievement.name}</div>
-                  <div className="text-sm text-gray-600">{achievement.description}</div>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* First Tree */}
+            <div className={`p-4 rounded-lg border-2 ${
+              user.treesPlanted >= 1 
+                ? 'border-emerald-200 bg-emerald-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="text-2xl mb-2">🌱</div>
+              <div className="font-medium text-gray-800">First Sprout</div>
+              <div className="text-sm text-gray-600">Plant your first tree</div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Fallback achievements */}
-              <div className={`p-4 rounded-lg border-2 ${
-                user.treesPlanted >= 1 
-                  ? 'border-emerald-200 bg-emerald-50' 
-                  : 'border-gray-200 bg-gray-50'
-              }`}>
-                <div className="text-2xl mb-2">🌱</div>
-                <div className="font-medium text-gray-800">First Sprout</div>
-                <div className="text-sm text-gray-600">Plant your first tree</div>
-              </div>
-              
-              <div className={`p-4 rounded-lg border-2 ${
-                user.bestStreak >= 7 
-                  ? 'border-orange-200 bg-orange-50' 
-                  : 'border-gray-200 bg-gray-50'
-              }`}>
-                <div className="text-2xl mb-2">🔥</div>
-                <div className="font-medium text-gray-800">Week Warrior</div>
-                <div className="text-sm text-gray-600">7-day streak</div>
-              </div>
-              
-              <div className={`p-4 rounded-lg border-2 ${
-                user.treesPlanted >= 10 
-                  ? 'border-green-200 bg-green-50' 
-                  : 'border-gray-200 bg-gray-50'
-              }`}>
-                <div className="text-2xl mb-2">🌲</div>
-                <div className="font-medium text-gray-800">Forest Builder</div>
-                <div className="text-sm text-gray-600">Plant 10 trees</div>
-              </div>
+            
+            {/* Week Streak */}
+            <div className={`p-4 rounded-lg border-2 ${
+              user.bestStreak >= 7 
+                ? 'border-orange-200 bg-orange-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="text-2xl mb-2">🔥</div>
+              <div className="font-medium text-gray-800">Week Warrior</div>
+              <div className="text-sm text-gray-600">7-day streak</div>
             </div>
-          )}
+            
+            {/* Forest Builder */}
+            <div className={`p-4 rounded-lg border-2 ${
+              user.treesPlanted >= 10 
+                ? 'border-green-200 bg-green-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="text-2xl mb-2">🌲</div>
+              <div className="font-medium text-gray-800">Forest Builder</div>
+              <div className="text-sm text-gray-600">Plant 10 trees</div>
+            </div>
+            
+            {/* Problem Solver */}
+            <div className={`p-4 rounded-lg border-2 ${
+              user.totalSolved >= 25 
+                ? 'border-blue-200 bg-blue-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="text-2xl mb-2">🧠</div>
+              <div className="font-medium text-gray-800">Problem Solver</div>
+              <div className="text-sm text-gray-600">Solve 25 problems</div>
+            </div>
+            
+            {/* Consistency King */}
+            <div className={`p-4 rounded-lg border-2 ${
+              user.bestStreak >= 30 
+                ? 'border-purple-200 bg-purple-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="text-2xl mb-2">👑</div>
+              <div className="font-medium text-gray-800">Consistency King</div>
+              <div className="text-sm text-gray-600">30-day streak</div>
+            </div>
+            
+            {/* Code Master */}
+            <div className={`p-4 rounded-lg border-2 ${
+              user.totalSolved >= 100 
+                ? 'border-yellow-200 bg-yellow-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="text-2xl mb-2">⚡</div>
+              <div className="font-medium text-gray-800">Code Master</div>
+              <div className="text-sm text-gray-600">Solve 100 problems</div>
+            </div>
+          </div>
         </div>
       </div>
 
