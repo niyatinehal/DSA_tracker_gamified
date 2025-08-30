@@ -1,15 +1,38 @@
 import React from 'react';
 import { TrendingUp, Target, Calendar, Award } from 'lucide-react';
 import { User } from '../types';
+import { apiService } from '../services/api';
 
 interface AnalyticsProps {
   user: User;
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
+  const [analyticsData, setAnalyticsData] = React.useState(null);
+  const [topicStrengths, setTopicStrengths] = React.useState(null);
+  
+  // Load analytics data from API
+  React.useEffect(() => {
+    const loadAnalytics = async () => {
+      try {
+        const [analytics, topics] = await Promise.all([
+          apiService.getAnalytics(Number(user.id)),
+          apiService.getTopicStrengths(Number(user.id))
+        ]);
+        setAnalyticsData(analytics);
+        setTopicStrengths(topics);
+      } catch (error) {
+        console.warn('Failed to load analytics:', error);
+        // Use fallback calculations
+      }
+    };
+
+    loadAnalytics();
+  }, [user.id]);
+  
   // Calculate analytics based on user data
-  const consistency = Math.min((user.currentStreak / 30) * 100, 100);
-  const accuracy = Math.min(((user.totalSolved / (user.totalSolved + 5)) * 100), 95); // Mock accuracy
+  const consistency = analyticsData?.consistency ?? Math.min((user.currentStreak / 30) * 100, 100);
+  const accuracy = analyticsData?.accuracy ?? Math.min(((user.totalSolved / (user.totalSolved + 5)) * 100), 95);
   const weeklyGoal = 7;
   const weeklyProgress = Math.min(user.currentStreak, weeklyGoal);
 
@@ -100,16 +123,33 @@ const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
         {/* Topic Recommendations */}
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-lg border border-emerald-100">
           <h4 className="font-medium text-emerald-800 mb-2">📚 Recommended Focus</h4>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-emerald-700">Arrays & Strings</span>
-              <span className="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded-full">Strong</span>
+          {topicStrengths ? (
+            <div className="space-y-2">
+              {topicStrengths.map((topic: any, index: number) => (
+                <div key={index} className="flex items-center justify-between">
+                  <span className="text-sm text-emerald-700">{topic.name}</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    topic.strength === 'Strong' ? 'bg-emerald-200 text-emerald-800' :
+                    topic.strength === 'Good' ? 'bg-blue-200 text-blue-800' :
+                    'bg-yellow-200 text-yellow-800'
+                  }`}>
+                    {topic.strength}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-emerald-700">Dynamic Programming</span>
-              <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Practice</span>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-emerald-700">Arrays & Strings</span>
+                <span className="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded-full">Strong</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-emerald-700">Dynamic Programming</span>
+                <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">Practice</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

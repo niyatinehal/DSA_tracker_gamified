@@ -16,7 +16,7 @@ interface Question {
 
 interface DailyChallengeProps {
   question: Question;
-  onComplete: () => void;
+  onComplete: (code: string) => void;
   onClose: () => void;
 }
 
@@ -53,10 +53,7 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
   };
 
   const handleComplete = () => {
-    if (isValid) {
-      onComplete();
-    }
-    onComplete();
+    onComplete(code);
   };
 
   return (
@@ -180,13 +177,12 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
             </button>
             <button
               onClick={handleComplete}
-              // disabled={!isValid}
-              // className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              //   isValid
-              //     ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-              //     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              // }`}
-              className='px-6 py-2 rounded-lg font-medium transition-colors bg-emerald-500 hover:bg-emerald-600 text-white'
+              disabled={!isValid}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                isValid
+                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               Plant Tree 🌱
             </button>

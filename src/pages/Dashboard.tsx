@@ -4,7 +4,7 @@ import ForestScene from '../components/ForestScene';
 import DailyChallenge from '../components/DailyChallenge';
 import Analytics from '../components/Analytics';
 import { User } from '../types';
-import { dailyQuestions } from '../data/mockData';
+import { apiService } from '../services/api';
 
 interface DashboardProps {
   user: User;
@@ -13,27 +13,69 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onUpdateProgress }) => {
   const [showChallenge, setShowChallenge] = useState(false);
+  const [dailyQuestion, setDailyQuestion] = useState(null);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   
-  // Get today's question (rotate based on day of year)
-  const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-  const todayQuestion = dailyQuestions[dayOfYear % dailyQuestions.length];
+  // Load daily question from API
+  React.useEffect(() => {
+    const loadDailyQuestion = async () => {
+      setIsLoadingQuestion(true);
+      try {
+        const question = await apiService.getDailyProblem();
+        setDailyQuestion(question);
+      } catch (error) {
+        console.warn('Failed to load daily question:', error);
+        // Fallback to mock data
+        const { dailyQuestions } = await import('../data/mockData');
+        const today = new Date();
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+        setDailyQuestion(dailyQuestions[dayOfYear % dailyQuestions.length]);
+      } finally {
+        setIsLoadingQuestion(false);
+      }
+    };
+
+    loadDailyQuestion();
+  }, []);
   
   // Check if user has completed today's challenge
+  const today = new Date();
   const hasCompletedToday = user.lastCompletedDate === today.toDateString();
 
-  const handleChallengeComplete = () => {
-    const newStreak = hasCompletedToday ? user.currentStreak : user.currentStreak + 1;
-    
-    onUpdateProgress({
-      currentStreak: newStreak,
-      bestStreak: Math.max(newStreak, user.bestStreak),
-      treesPlanted: user.treesPlanted + 1,
-      totalSolved: user.totalSolved + 1,
-      lastCompletedDate: today.toDateString()
-    });
-    
-    setShowChallenge(false);
+  const handleChallengeComplete = async (code: string) => {
+    try {
+      // Submit solution to API
+      if (dailyQuestion) {
+        await apiService.submitSolution(dailyQuestion.id, code);
+      }
+      
+      // Update user progress
+      const newStreak = hasCompletedToday ? user.currentStreak : user.currentStreak + 1;
+      
+      await onUpdateProgress({
+        currentStreak: newStreak,
+        bestStreak: Math.max(newStreak, user.bestStreak),
+        treesPlanted: user.treesPlanted + 1,
+        totalSolved: user.totalSolved + 1,
+        lastCompletedDate: today.toDateString()
+      });
+      
+      setShowChallenge(false);
+    } catch (error) {
+      console.error('Failed to submit solution:', error);
+      // Still update progress locally for demo
+      const newStreak = hasCompletedToday ? user.currentStreak : user.currentStreak + 1;
+      
+      await onUpdateProgress({
+        currentStreak: newStreak,
+        bestStreak: Math.max(newStreak, user.bestStreak),
+        treesPlanted: user.treesPlanted + 1,
+        totalSolved: user.totalSolved + 1,
+        lastCompletedDate: today.toDateString()
+      });
+      
+      setShowChallenge(false);
+    }
   };
 
   return (
@@ -89,22 +131,36 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdateProgress }) => {
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800">Today's Challenge</h3>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  todayQuestion.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                  todayQuestion.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-red-100 text-red-700'
-                }`}>
-                  {todayQuestion.difficulty}
-                </span>
+                {dailyQuestion && (
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    dailyQuestion.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                    dailyQuestion.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {dailyQuestion.difficulty}
+                  </span>
+                )}
               </div>
               
-              <h4 className="text-lg font-semibold text-gray-700 mb-2">
-                {todayQuestion.title}
-              </h4>
-              
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {todayQuestion.description}
-              </p>
+              {isLoadingQuestion ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                </div>
+              ) : dailyQuestion ? (
+                <>
+                  <h4 className="text-lg font-semibold text-gray-700 mb-2">
+                    {dailyQuestion.title}
+                  </h4>
+                  
+                  <p className="text-gray-600 mb-4 line-clamp-2">
+                    {dailyQuestion.description}
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">Unable to load today's challenge</p>
+                </div>
+              )}
               
               {hasCompletedToday ? (
                 <div className="flex items-center justify-center py-4 bg-emerald-50 rounded-lg border border-emerald-200">
@@ -115,12 +171,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdateProgress }) => {
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowChallenge(true)}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-                >
-                  Start Challenge 🚀
-                </button>
+                dailyQuestion && (
+                  <button
+                    onClick={() => setShowChallenge(true)}
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                  >
+                    Start Challenge 🚀
+                  </button>
+                )
               )}
             </div>
           </div>
@@ -133,9 +191,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdateProgress }) => {
       </div>
 
       {/* Daily Challenge Modal */}
-      {showChallenge && (
+      {showChallenge && dailyQuestion && (
         <DailyChallenge
-          question={todayQuestion}
+          question={dailyQuestion}
           onComplete={handleChallengeComplete}
           onClose={() => setShowChallenge(false)}
         />
