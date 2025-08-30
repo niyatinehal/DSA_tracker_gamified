@@ -73,6 +73,7 @@ const GrowthParticles: React.FC<GrowthParticlesProps> = ({ stage }) => {
   const currentColor = colors[Math.min(stage, colors.length - 1)];
   
   return (
+    //@ts-ignore
     <instancedMesh ref={mesh} args={[null, null, COUNT]} castShadow>
       <dodecahedronGeometry args={[1, 0]} />
       <meshStandardMaterial 
