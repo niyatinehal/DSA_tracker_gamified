@@ -10,7 +10,7 @@ interface Question {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   description: string;
   template: string;
-  testCases: Array<{ input: string; expected: string }>;
+  testcases: Array<{ input: string; expected: string }>;
   url: string;
 }
 
@@ -21,6 +21,7 @@ interface DailyChallengeProps {
 }
 
 const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, onClose }) => {
+  console.log(question)
   const [code, setCode] = useState(question.template);
   const [isValid, setIsValid] = useState(false);
   const [testResults, setTestResults] = useState<Array<{ passed: boolean; error?: string }>>([]);
@@ -28,7 +29,7 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
   const validateSolution = (code: string) => {
     try {
       const fn = new Function('return ' + code)();
-      const results = question.testCases.map(test => {
+      const results = question.testcases.map(test => {
         try {
           const result = fn(...eval(`[${test.input}]`));
           const passed = JSON.stringify(result) === test.expected;
@@ -42,7 +43,7 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
       setIsValid(results.every(r => r.passed));
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Syntax error';
-      setTestResults(question.testCases.map(() => ({ passed: false, error: errorMsg })));
+      setTestResults(question.testcases.map(() => ({ passed: false, error: errorMsg })));
       setIsValid(false);
     }
   };
@@ -99,7 +100,7 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ question, onComplete, o
               <div>
                 <h3 className="font-medium text-gray-800 mb-3">Test Cases</h3>
                 <div className="space-y-3">
-                  {question.testCases.map((test, idx) => (
+                  {question.testcases?.map((test, idx) => (
                     <div key={idx} className={`p-3 rounded-lg border ${
                       testResults[idx] 
                         ? testResults[idx].passed 

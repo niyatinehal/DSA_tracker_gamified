@@ -120,3 +120,8 @@ const createAvatarCanvas = (avatar: User['avatar']): HTMLCanvasElement => {
 };
 
 export default Avatar2D;
+
+
+{/**
+  
+   */}

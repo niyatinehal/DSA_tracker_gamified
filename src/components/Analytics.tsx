@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { TrendingUp, Target, Calendar, Award } from 'lucide-react';
 import { User } from '../types';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 import { apiService } from '../services/api';
 
 interface AnalyticsProps {
@@ -11,24 +13,42 @@ const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [topicStrengths, setTopicStrengths] =useState([]);
   
-  // Load analytics data from API
+  // Get auth token from Redux
+  const token = useSelector((state: RootState) => state.auth.token);
+
   useEffect(() => {
     const loadAnalytics = async () => {
+      if (!token) return;
+
       try {
-        const [analytics] = await Promise.all([
-          apiService.getAnalytics(Number(user.id)),
-          // apiService.getTopicStrengths(Number(user.id))
-        ]);
-        setAnalyticsData(analytics);
+        const res = await fetch(`http://localhost:4000/analytics/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch analytics: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        setAnalyticsData(data);
+
+        // Uncomment if you want to fetch topic strengths separately
+        // const topicRes = await fetch(`/analytics/topic-strengths/${user.id}`, { headers: { Authorization: `Bearer ${token}` } });
+        // const topics = await topicRes.json();
         // setTopicStrengths(topics);
+
       } catch (error) {
         console.warn('Failed to load analytics:', error);
-        // Use fallback calculations
+        // fallback logic if needed
       }
     };
 
     loadAnalytics();
-  }, [user.id]);
+  }, [user.id, token]);
   
   // Calculate analytics based on user data
   //@ts-ignore
@@ -36,7 +56,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
   //@ts-ignore
   const accuracy = analyticsData?.accuracy ?? Math.min(((user.totalSolved / (user.totalSolved + 5)) * 100), 95);
   const weeklyGoal = 7;
-  const weeklyProgress = Math.min(user.currentStreak, weeklyGoal);
+  const weeklyProgress = analyticsData?.weeklyGoal.progress ?? Math.min(user.currentStreak, weeklyGoal);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">

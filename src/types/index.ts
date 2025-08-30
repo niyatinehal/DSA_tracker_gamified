@@ -25,3 +25,10 @@ export interface Question {
   testCases: Array<{ input: string; expected: string }>;
   url: string;
 }
+
+export interface Avatar {
+  bodyColor: string;
+  skinColor: string;
+  hairColor: string;
+  accessory?: "hat" | "glasses" | null;
+}

@@ -6,7 +6,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  token: localStorage.getItem("dsa-forest-token"), // restore from localStorage on load
+  token: null,
   user: null,
 };
 
@@ -17,12 +17,10 @@ const authSlice = createSlice({
     setAuth: (state, action: PayloadAction<{ token: string; user: any }>) => {
       state.token = action.payload.token;
       state.user = action.payload.user;
-      localStorage.setItem("dsa-forest-token", action.payload.token);
     },
     clearAuth: (state) => {
       state.token = null;
       state.user = null;
-      localStorage.removeItem("dsa-forest-token");
     },
   },
 });

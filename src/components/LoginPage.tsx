@@ -4,6 +4,7 @@ import type { RootState, AppDispatch } from "../redux/store";
 import { Trees, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { setAuth } from '../redux/authenticationSlice';
 import { apiService } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 
 export const useAppDispatch: () => AppDispatch = useDispatch;
@@ -25,6 +26,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSignup }) => {
 
     const dispatch = useAppDispatch();
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -32,11 +34,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSignup }) => {
 
     try {
       if (isLogin) {
-        const res = await apiService.login(email, password);
-        dispatch(setAuth({ token: res.token, user: res.user }));
+        const res = await onLogin(email, password);
+        // dispatch(setAuth({ token: res.token, user: res.user }));
       } else {
-        const res = await apiService.register(email, password, name);
-        dispatch(setAuth({ token: res.token, user: res.user }));
+        const res = await onSignup(email, password, name);
+        // dispatch(setAuth({ token: res.token, user: res.user }));
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong");

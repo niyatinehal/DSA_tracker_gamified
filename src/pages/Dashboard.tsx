@@ -5,6 +5,8 @@ import DailyChallenge from '../components/DailyChallenge';
 import Analytics from '../components/Analytics';
 import { User } from '../types';
 import { apiService } from '../services/api';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 interface DashboardProps {
   user: User;
@@ -15,9 +17,74 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdateProgress }) => {
   const [showChallenge, setShowChallenge] = useState(false);
   const [dailyQuestion, setDailyQuestion] = useState(null);
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
+  const[users,setUser]=useState(user)
+  //for dummy purposes
+  const dummyUser={
+    "currentStreak":0,
+    "totalSolved":0,
+    "treesPlanted":0
+  }
+  const [dummyUserData,setDummyUserData]=useState(dummyUser)
+  const token = useSelector((state: RootState) => state.auth.token);
+
+  useEffect(() => {
+    const userAnalytics = async () => {
+      if (!token) return;
+
+      try {
+        const res = await fetch(`http://localhost:4000/users/${user.id}/forest`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch analytics: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        setUser(data);
+
+        // Uncomment if you want to fetch topic strengths separately
+        // const topicRes = await fetch(`/analytics/topic-strengths/${user.id}`, { headers: { Authorization: `Bearer ${token}` } });
+        // const topics = await topicRes.json();
+        // setTopicStrengths(topics);
+
+      } catch (error) {
+        console.warn('Failed to load analytics:', error);
+        // fallback logic if needed
+      }
+    };
+
+    userAnalytics();
+  }, [user.id, token]);
   
   // Load daily question from API
 useEffect(() => {
+  // const loadDailyQuestion = async (email: string, password: string) => {
+  //     try {
+  //       const response = await fetch('http://localhost:4000/', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({ email, password }),
+  //       });
+  
+  //       if (!response.ok) {
+  //         const err = await response.json();
+  //         throw new Error(err.message || 'Login failed');
+  //       }
+  
+  //       const res = await response.json();
+  //       dispatch(setAuth({ token: res.token, user: res.user }));
+  //       navigate('/dashboard');
+  //       return res;
+  
+  //     } catch (error: any) {
+  //       throw new Error(error.message || 'Something went wrong during login');
+  //     }
+  //   };
     const loadDailyQuestion = async () => {
       setIsLoadingQuestion(true);
       try {
@@ -35,7 +102,6 @@ useEffect(() => {
         setIsLoadingQuestion(false);
       }
     };
-
     loadDailyQuestion();
   }, []);
   
@@ -44,6 +110,12 @@ useEffect(() => {
   const hasCompletedToday = user.lastCompletedDate === today.toDateString();
 
   const handleChallengeComplete = async (code: string) => {
+    console.log("CLICKEd")
+    setDummyUserData({
+      "currentStreak":1,
+    "totalSolved":1,
+    "treesPlanted":1
+    })
     try {
       // Submit solution to API
       if (dailyQuestion) {
@@ -79,6 +151,8 @@ useEffect(() => {
     }
   };
 
+  console.log("dily questions", dummyUser)
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 p-6">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -98,7 +172,7 @@ useEffect(() => {
             <div className="flex items-center justify-center mb-3">
               <Zap className="h-8 w-8 text-orange-500" />
             </div>
-            <div className="text-3xl font-bold text-gray-800">{user.currentStreak}</div>
+            <div className="text-3xl font-bold text-gray-800">{dummyUserData.currentStreak}</div>
             <div className="text-gray-600">Day Streak</div>
           </div>
           
@@ -106,7 +180,7 @@ useEffect(() => {
             <div className="flex items-center justify-center mb-3">
               <Target className="h-8 w-8 text-emerald-500" />
             </div>
-            <div className="text-3xl font-bold text-gray-800">{user.treesPlanted}</div>
+            <div className="text-3xl font-bold text-gray-800">{dummyUserData.treesPlanted}</div>
             <div className="text-gray-600">Trees Planted</div>
           </div>
           
@@ -114,7 +188,7 @@ useEffect(() => {
             <div className="flex items-center justify-center mb-3">
               <Calendar className="h-8 w-8 text-blue-500" />
             </div>
-            <div className="text-3xl font-bold text-gray-800">{user.totalSolved}</div>
+            <div className="text-3xl font-bold text-gray-800">{dummyUserData.totalSolved}</div>
             <div className="text-gray-600">Problems Solved</div>
           </div>
         </div>
@@ -128,66 +202,60 @@ useEffect(() => {
               <ForestScene user={user} />
             </div>
             
-            {/* Daily Challenge Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-800">Today's Challenge</h3>
-                {dailyQuestion && (
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  //@ts-ignore
-                    dailyQuestion.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+              {/* Daily Challenge Card */}
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-800">Today's Challenge</h3>
+                  {dailyQuestion && dailyQuestion?.map((questions)=>(
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                     //@ts-ignore
-                    dailyQuestion.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {/*@ts-ignore */}
-                    {dailyQuestion.difficulty}
-                  </span>
-                )}
+                      dailyQuestion.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                      //@ts-ignore
+                      dailyQuestion.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                    
+                      {questions?.difficulty}
+                    </span>
+                  ))}
+                </div>
+                
+  {isLoadingQuestion ? (
+    <div className="flex items-center justify-center py-8">
+      <div className="w-6 h-6 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+    </div>
+  ) : dailyQuestion && dailyQuestion.length > 0 ? (
+    dailyQuestion.map((question, index) => (
+      <div key={index}>
+        <h4 className="text-lg font-semibold text-gray-700 mb-2">{question.title}</h4>
+        <p className="text-gray-600 mb-4 line-clamp-2">{question.description}</p>
+      </div>
+    ))
+  ) : (
+    <div className="text-center py-4">
+      <p className="text-gray-500">Unable to load today's challenge</p>
+    </div>
+  )}
+                  {hasCompletedToday ? (
+    <div className="flex items-center justify-center py-4 bg-emerald-50 rounded-lg border border-emerald-200">
+      <div className="text-center">
+        <div className="text-2xl mb-2">🎉</div>
+        <div className="font-medium text-emerald-800">Challenge Completed!</div>
+        <div className="text-sm text-emerald-600">Come back tomorrow for a new challenge</div>
+      </div>
+    </div>
+  ) : (
+    dailyQuestion && dailyQuestion.length > 0 && (
+      <button
+        onClick={() => setShowChallenge(true)}
+        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+      >
+        Start Challenge 🚀
+      </button>
+    )
+  )}
               </div>
-              
-              {isLoadingQuestion ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
-                </div>
-              ) : dailyQuestion ? (
-                <>
-                  <h4 className="text-lg font-semibold text-gray-700 mb-2">
-                      {/*@ts-ignore */}
-                    {dailyQuestion.title}
-                  </h4>
-                  
-                  <p className="text-gray-600 mb-4 line-clamp-2">
-                      {/*@ts-ignore */}
-                    {dailyQuestion.description}
-                  </p>
-                </>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-gray-500">Unable to load today's challenge</p>
-                </div>
-              )}
-              
-              {hasCompletedToday ? (
-                <div className="flex items-center justify-center py-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🎉</div>
-                    <div className="font-medium text-emerald-800">Challenge Completed!</div>
-                    <div className="text-sm text-emerald-600">Come back tomorrow for a new challenge</div>
-                  </div>
-                </div>
-              ) : (
-                dailyQuestion && (
-                  <button
-                    onClick={() => setShowChallenge(true)}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-                  >
-                    Start Challenge 🚀
-                  </button>
-                )
-              )}
             </div>
-          </div>
           
           {/* Analytics Sidebar */}
           <div className="space-y-6">
@@ -197,13 +265,13 @@ useEffect(() => {
       </div>
 
       {/* Daily Challenge Modal */}
-      {showChallenge && dailyQuestion && (
-        <DailyChallenge
-          question={dailyQuestion}
-          onComplete={handleChallengeComplete}
-          onClose={() => setShowChallenge(false)}
-        />
-      )}
+{showChallenge && dailyQuestion && dailyQuestion.length > 0 && (
+  <DailyChallenge
+    question={dailyQuestion[0]}
+    onComplete={handleChallengeComplete}
+    onClose={() => setShowChallenge(false)}
+  />
+)}
     </div>
   );
 };
