@@ -75,7 +75,7 @@ class ApiService {
 
   // Problems endpoints
   async getDailyProblem(): Promise<any> {
-    return this.request('/problems/');
+    return this.request('/problems/daily');
   }
 
   async getProblems(page = 1, limit = 20): Promise<any> {
@@ -88,16 +88,16 @@ class ApiService {
 
   // Submissions endpoints
   async submitSolution(problemId: number, code: string, language = 'javascript'): Promise<any> {
-    return this.request(`/submissions/${problemId}/submit`, {
+    return this.request('/submissions', {
       method: 'POST',
       body: JSON.stringify({ problemId, code, language }),
     });
   }
 
-//   async getSubmissions(userId?: number): Promise<any> {
-//     const endpoint = userId ? `/submissions?userId=${userId}` : '/submissions';
-//     return this.request(endpoint);
-//   }
+  async getSubmissions(userId?: number): Promise<any> {
+    const endpoint = userId ? `/submissions?userId=${userId}` : '/submissions';
+    return this.request(endpoint);
+  }
 
   // Achievements endpoints
   async getAchievements(userId?: number): Promise<any> {
@@ -114,14 +114,14 @@ class ApiService {
 
   // Analytics endpoints
   async getAnalytics(userId?: number): Promise<any> {
-    const endpoint = userId ? `/analytics/me` : '/analytics';
+    const endpoint = userId ? `/analytics?userId=${userId}` : '/analytics';
     return this.request(endpoint);
   }
 
-//   async getTopicStrengths(userId?: number): Promise<any> {
-//     const endpoint = userId ? `/analytics/topics?userId=${userId}` : '/analytics/topics';
-//     return this.request(endpoint);
-//   }
+  async getTopicStrengths(userId?: number): Promise<any> {
+    const endpoint = userId ? `/analytics/topics?userId=${userId}` : '/analytics/topics';
+    return this.request(endpoint);
+  }
 
   // Forest summary endpoint
   async getForestSummary(userId: number): Promise<{

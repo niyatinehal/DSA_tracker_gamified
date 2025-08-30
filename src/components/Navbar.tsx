@@ -6,7 +6,7 @@ interface NavbarProps {
   currentPage: 'dashboard' | 'profile';
   onNavigate: (page: 'dashboard' | 'profile') => void;
   user: User;
-  onLogout: () => void;
+  
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, user, onLogout }) => {
@@ -21,19 +21,20 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, user, onLogout
             <Trees className="h-8 w-8" />
             <span className="text-xl font-bold">DSA Forest</span>
           </button>
-          <div className='flex '>
-          <button
-            onClick={() => onNavigate('profile')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
-              currentPage === 'profile'
-                ? 'bg-emerald-100 text-emerald-800'
-                : 'text-emerald-600 hover:bg-emerald-50'
-            }`}
-          >
-            <UserIcon className="h-5 w-5" />
-            <span className="font-medium">Profile</span>
-          </button>
-
+          
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => onNavigate('profile')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
+                currentPage === 'profile'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'text-emerald-600 hover:bg-emerald-50'
+              }`}
+            >
+              <UserIcon className="h-5 w-5" />
+              <span className="font-medium">Profile</span>
+            </button>
+            
             <button
               onClick={onLogout}
               className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
