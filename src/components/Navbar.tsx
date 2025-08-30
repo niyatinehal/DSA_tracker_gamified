@@ -6,7 +6,7 @@ interface NavbarProps {
   currentPage: 'dashboard' | 'profile';
   onNavigate: (page: 'dashboard' | 'profile') => void;
   user: User;
-  onLogout: () => void;
+  
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, user, onLogout }) => {
