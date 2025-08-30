@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TrendingUp, Target, Calendar, Award } from 'lucide-react';
 import { User } from '../types';
 import { apiService } from '../services/api';
@@ -8,19 +8,19 @@ interface AnalyticsProps {
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
-  const [analyticsData, setAnalyticsData] = React.useState(null);
-  const [topicStrengths, setTopicStrengths] = React.useState(null);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [topicStrengths, setTopicStrengths] =useState([]);
   
   // Load analytics data from API
-  React.useEffect(() => {
+  useEffect(() => {
     const loadAnalytics = async () => {
       try {
-        const [analytics, topics] = await Promise.all([
+        const [analytics] = await Promise.all([
           apiService.getAnalytics(Number(user.id)),
-          apiService.getTopicStrengths(Number(user.id))
+          // apiService.getTopicStrengths(Number(user.id))
         ]);
         setAnalyticsData(analytics);
-        setTopicStrengths(topics);
+        // setTopicStrengths(topics);
       } catch (error) {
         console.warn('Failed to load analytics:', error);
         // Use fallback calculations
@@ -31,7 +31,9 @@ const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
   }, [user.id]);
   
   // Calculate analytics based on user data
+  //@ts-ignore
   const consistency = analyticsData?.consistency ?? Math.min((user.currentStreak / 30) * 100, 100);
+  //@ts-ignore
   const accuracy = analyticsData?.accuracy ?? Math.min(((user.totalSolved / (user.totalSolved + 5)) * 100), 95);
   const weeklyGoal = 7;
   const weeklyProgress = Math.min(user.currentStreak, weeklyGoal);
@@ -125,7 +127,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
           <h4 className="font-medium text-emerald-800 mb-2">📚 Recommended Focus</h4>
           {topicStrengths ? (
             <div className="space-y-2">
-              {topicStrengths.map((topic: any, index: number) => (
+              {/* {topicStrengths.map((topic: any, index: number) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-emerald-700">{topic.name}</span>
                   <span className={`text-xs px-2 py-1 rounded-full ${
@@ -136,7 +138,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ user }) => {
                     {topic.strength}
                   </span>
                 </div>
-              ))}
+              ))} */}
             </div>
           ) : (
             <div className="space-y-2">

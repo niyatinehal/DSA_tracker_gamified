@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../redux/store";
 import { Trees, Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { setAuth } from '../redux/authenticationSlice';
+import { apiService } from '../services/api';
+
+
+export const useAppDispatch: () => AppDispatch = useDispatch;
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => void;
@@ -13,21 +21,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSignup }) => {
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const[error, setError]= useState<string | null>(null);
+
+    const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (isLogin) {
-      onLogin(email, password);
-    } else {
-      onSignup(email, password, name);
+    setError(null);
+
+    try {
+      if (isLogin) {
+        const res = await apiService.login(email, password);
+        dispatch(setAuth({ token: res.token, user: res.user }));
+      } else {
+        const res = await apiService.register(email, password, name);
+        dispatch(setAuth({ token: res.token, user: res.user }));
+      }
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleDemoLogin = () => {
@@ -193,4 +208,4 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSignup }) => {
   );
 };
 
-export default LoginPage;
+export default LoginPage;8

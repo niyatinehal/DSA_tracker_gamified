@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import LoginPage from './components/LoginPage';
-import LoginPage from './components/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Navbar from './components/Navbar';
-import { User } from './types';
+// import { User } from './types';
 import { useAuth } from './hooks/useAuth';
 
 function App() {

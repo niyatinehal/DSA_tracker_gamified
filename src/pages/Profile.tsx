@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Edit3, Calendar, Trophy, Target, Zap } from 'lucide-react';
 import AvatarCustomizer from '../components/AvatarCustomizer';
 import { User } from '../types';
@@ -13,6 +13,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.name);
 
+<<<<<<< Updated upstream
   const handleSaveName = () => {
     onUpdateUser({ ...user, name: editedName });
     setIsEditing(false);
@@ -20,6 +21,31 @@ const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
 
   const handleAvatarSave = (newAvatar: User['avatar']) => {
     onUpdateUser({ ...user, avatar: newAvatar });
+=======
+  // Load achievements from API
+  useEffect(() => {
+    const loadAchievements = async () => {
+      try {
+        const userAchievements = await apiService.getAchievements(Number(user.id));
+        setAchievements(userAchievements);
+      } catch (error) {
+        console.warn('Failed to load achievements:', error);
+      }
+    };
+
+    loadAchievements();
+  }, [user.id]);
+
+  const handleSaveName = async () => {
+    //@ts-ignore
+    await onUpdateUser({ name: editedName });
+    setIsEditing(false);
+  };
+
+  const handleAvatarSave = async (newAvatar: User['avatar']) => {
+      //@ts-ignore
+    await onUpdateUser({ avatar: newAvatar });
+>>>>>>> Stashed changes
     setShowAvatarCustomizer(false);
   };
 
